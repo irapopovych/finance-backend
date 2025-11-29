@@ -87,17 +87,6 @@ npm start
 
 Server will run on `http://localhost:5000`
 
-## 🐳 Docker Deployment (optional)
-
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
-
-# Or build manually
-docker build -t finance-backend .
-docker run -p 5000:5000 --env-file .env finance-backend
-```
-
 ## 📊 Database Schema
 
 ### Users Table
