@@ -1,7 +1,5 @@
 # API Testing Examples
 
-Використовуй curl або Postman/Insomnia для тестування.
-
 ## 1. Health Check
 
 ```bash
