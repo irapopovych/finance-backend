@@ -1,325 +1,265 @@
-# Backend A - Finance Management System
+# 💰 Finance Management Backend
 
-Головний backend для системи управління особистими фінансами.
+A robust RESTful API backend for personal finance management, built with Node.js, Express, and PostgreSQL. Features JWT authentication, role-based access control, and comprehensive transaction management.
 
-## 🚀 Технології
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.18-blue.svg)](https://expressjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
 
-- **Node.js** + Express.js
-- **PostgreSQL** - база даних
-- **JWT** - автентифікація
-- **bcrypt** - хешування паролів
+## ✨ Features
 
-## 📋 Функціонал
+- 🔐 **JWT Authentication** - Secure user authentication with JSON Web Tokens
+- 👥 **Role-Based Access Control** - Admin and User roles with different permissions
+- 💳 **Transaction Management** - Full CRUD operations for income and expenses
+- 📊 **Statistics & Analytics** - Ready for ML integration with detailed financial statistics
+- 🏷️ **Category Management** - Organize transactions by custom categories
+- 🔒 **User Management** - Admin panel for user blocking/unblocking
+- 🌐 **CORS Enabled** - Ready for frontend integration
+- 🐳 **Docker Ready** - Easy deployment with Docker support
+- 📝 **Comprehensive API Documentation** - Well-documented endpoints
 
-### Автентифікація
-- Реєстрація користувачів
-- Вхід/вихід (JWT токени)
-- Дві ролі: `admin` і `user`
-- Блокування користувачів (admin)
+## 🛠️ Tech Stack
 
-### Управління даними
-- **Користувачі**: CRUD операції для admin
-- **Категорії**: створення, читання, оновлення, видалення
-- **Транзакції**: повний CRUD + статистика для ML
+- **Runtime:** Node.js 18+
+- **Framework:** Express.js
+- **Database:** PostgreSQL (Neon serverless)
+- **Authentication:** JWT + bcrypt
+- **Validation:** express-validator
+- **Security:** helmet, cors
+- **Logging:** morgan
 
-### Безпека
-- Хешування паролів (bcrypt)
-- JWT токени
-- Валідація даних
-- CORS налаштування
-- Helmet для HTTP заголовків
+## 📋 Prerequisites
 
-## 🛠️ Встановлення
+- Node.js 18 or higher
+- PostgreSQL database (or Neon account)
+- npm or yarn
 
-### 1. Клонуй репозиторій
+## 🚀 Quick Start
+
+### 1. Clone the repository
+
 ```bash
-git clone <your-repo>
-cd backend-a
+git clone https://github.com/irapopovych/finance-backend.git
+cd finance-backend
 ```
 
-### 2. Встанови залежності
+### 2. Install dependencies
+
 ```bash
 npm install
 ```
 
-### 3. Налаштуй базу даних PostgreSQL
+### 3. Environment Setup
 
-**Локально:**
-```bash
-# Встанови PostgreSQL
-# macOS:
-brew install postgresql
-brew services start postgresql
+Create `.env` file in the root directory:
 
-# Ubuntu:
-sudo apt-get install postgresql
-sudo service postgresql start
-
-# Створи базу даних
-psql postgres
-CREATE DATABASE finance_db;
-\q
-```
-
-**Або використай безкоштовні онлайн сервіси:**
-- [Render PostgreSQL](https://render.com) - безкоштовно
-- [Supabase](https://supabase.com) - безкоштовно
-- [ElephantSQL](https://www.elephantsql.com) - безкоштовно
-
-### 4. Налаштуй .env файл
-
-Скопіюй `.env.example` → `.env`:
-```bash
-cp .env.example .env
-```
-
-Відредагуй `.env`:
 ```env
-DATABASE_URL=postgresql://username:password@host:5432/finance_db
-JWT_SECRET=твій-секретний-ключ-мінімум-32-символи
+DATABASE_URL=postgresql://user:password@host:5432/database
+JWT_SECRET=your-super-secret-jwt-key-change-this
 JWT_EXPIRE=7d
-PORT=5000
 NODE_ENV=development
-FRONTEND_URL=https://example.z1.web.core.windows.net
+PORT=5000
+FRONTEND_URL=http://localhost:3000
 ```
 
-### 5. Ініціалізуй базу даних
+### 4. Initialize Database
 
 ```bash
 npm run init-db
 ```
 
-Це створить таблиці та додасть тестові дані:
-- **Admin**: `admin@finance.com` / `admin123`
-- **User**: `user@finance.com` / `user123`
+This will:
+- Create all necessary tables (users, categories, transactions)
+- Insert test data (2 users, 12 categories, 85 transactions)
+- Set up indexes for optimization
 
-### 6. Запусти сервер
+### 5. Start the server
 
+**Development:**
 ```bash
-# Development режим (з автоперезавантаженням)
 npm run dev
+```
 
-# Production режим
+**Production:**
+```bash
 npm start
 ```
 
-Сервер запуститься на `http://localhost:5000`
+Server will run on `http://localhost:5000`
 
-## 📡 API Endpoints
+## 🐳 Docker Deployment (optional)
 
-### Auth (`/api/auth`)
-```
-POST   /register      - Реєстрація
-POST   /login         - Вхід
-GET    /me            - Поточний користувач
-POST   /logout        - Вихід
-```
-
-### Users (`/api/users`) - Admin only
-```
-GET    /              - Список користувачів
-GET    /:id           - Один користувач
-PUT    /:id/block     - Блокувати/розблокувати
-DELETE /:id           - Видалити користувача
-```
-
-### Categories (`/api/categories`)
-```
-GET    /              - Всі категорії користувача
-GET    /:id           - Одна категорія
-POST   /              - Створити категорію
-PUT    /:id           - Оновити категорію
-DELETE /:id           - Видалити категорію
-```
-
-### Transactions (`/api/transactions`)
-```
-GET    /              - Всі транзакції (з фільтрами)
-GET    /stats         - Статистика для ML
-GET    /:id           - Одна транзакція
-POST   /              - Створити транзакцію
-PUT    /:id           - Оновити транзакцію
-DELETE /:id           - Видалити транзакцію
-```
-
-## 🧪 Приклади використання
-
-### 1. Реєстрація
 ```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "password123"
-  }'
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Or build manually
+docker build -t finance-backend .
+docker run -p 5000:5000 --env-file .env finance-backend
 ```
 
-### 2. Логін
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@finance.com",
-    "password": "user123"
-  }'
+## 📊 Database Schema
+
+### Users Table
+```sql
+- id (SERIAL PRIMARY KEY)
+- email (VARCHAR UNIQUE)
+- password_hash (TEXT)
+- role (VARCHAR) - 'admin' or 'user'
+- is_blocked (BOOLEAN)
+- created_at (TIMESTAMP)
 ```
 
-Відповідь:
+### Categories Table
+```sql
+- id (SERIAL PRIMARY KEY)
+- name (VARCHAR)
+- user_id (INTEGER FK → users.id)
+- created_at (TIMESTAMP)
+```
+
+### Transactions Table
+```sql
+- id (SERIAL PRIMARY KEY)
+- amount (NUMERIC)
+- type (VARCHAR) - 'income' or 'expense'
+- description (TEXT)
+- date (DATE)
+- user_id (INTEGER FK → users.id)
+- category_id (INTEGER FK → categories.id)
+- created_at (TIMESTAMP)
+```
+
+## 🧪 Test Credentials
+
+The database is initialized with test data:
+
+**User Account:**
+- Email: `user@test.com`
+- Password: `user123`
+- Role: `user`
+
+**Test Data:**
+- 12 categories (Salary, Rent, Food, Transport, etc.)
+- 85 realistic transactions spanning 3 months (Nov 2024 - Jan 2025)
+
+## 📖 API Documentation
+
+Full API documentation available in [API_REFERENCE.md](API_REFERENCE.md)
+
+**Quick Overview:**
+
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login and get JWT token
+- `GET /api/auth/me` - Get current user info
+- `GET /api/categories` - Get all categories
+- `POST /api/categories` - Create category
+- `GET /api/transactions` - Get all transactions (with filters)
+- `POST /api/transactions` - Create transaction
+- `GET /api/transactions/stats` - Get statistics for ML
+- `GET /api/users` - Get all users (admin only)
+- `PUT /api/users/:id/block` - Block/unblock user (admin only)
+
+## 🔒 Security Features
+
+- ✅ Password hashing with bcrypt (10 rounds)
+- ✅ JWT token-based authentication
+- ✅ Token expiration (7 days default)
+- ✅ CORS protection
+- ✅ Helmet security headers
+- ✅ SQL injection prevention
+- ✅ Input validation and sanitization
+- ✅ Role-based access control
+
+## 📈 Statistics Endpoint (ML Ready)
+
+The `/api/transactions/stats` endpoint provides comprehensive financial data perfect for ML predictions:
+
 ```json
 {
-  "success": true,
-  "data": {
-    "user": {
-      "id": 2,
-      "email": "user@finance.com",
-      "role": "user"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
+  "overall": {
+    "total_income": 10270,
+    "total_expense": 4991,
+    "balance": 5279,
+    "transaction_count": 85
+  },
+  "by_category": [
+    {"category": "Salary", "total": 8600, "count": 3},
+    {"category": "Rent", "total": 1590, "count": 3}
+  ],
+  "monthly": [
+    {"month": "2024-11", "income": 3250, "expense": 1428, "balance": 1822},
+    {"month": "2024-12", "income": 3550, "expense": 1851, "balance": 1699}
+  ]
 }
 ```
 
-### 3. Використання токену
+## 🌐 Deployment
 
-Додай токен до кожного запиту:
-```bash
-curl -X GET http://localhost:5000/api/transactions \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
-```
+### Render.com (Recommended)
 
-### 4. Створити транзакцію
+1. Push code to GitHub
+2. Connect repository to Render
+3. Set environment variables
+4. Deploy!
+
+**Environment Variables on Render:**
+- `DATABASE_URL` - Your Neon PostgreSQL URL
+- `JWT_SECRET` - Your secret key
+- `NODE_ENV` - `production`
+- `FRONTEND_URL` - Your frontend URL
+
+### Other Platforms
+
+- Railway.app
+- Fly.io
+- Heroku
+- AWS/Azure/GCP
+
+## 🧪 Testing
+
 ```bash
-curl -X POST http://localhost:5000/api/transactions \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+# Test health endpoint
+curl http://localhost:5000/health
+
+# Test login
+curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "amount": 150.50,
-    "type": "expense",
-    "description": "Grocery shopping",
-    "date": "2025-01-15",
-    "category_id": 1
-  }'
+  -d '{"email":"user@test.com","password":"user123"}'
+
+# Run full test suite (requires backend running)
+./test-backend.sh
 ```
 
-### 5. Отримати статистику (для ML)
-```bash
-curl -X GET "http://localhost:5000/api/transactions/stats?date_from=2025-01-01" \
-  -H "Authorization: Bearer YOUR_TOKEN"
+## 📁 Project Structure
+
+```
+backend-a/
+├── src/
+│   ├── config/
+│   │   └── database.js          # Database connection
+│   ├── middleware/
+│   │   ├── auth.js              # JWT authentication
+│   │   └── errorHandler.js      # Error handling
+│   ├── routes/
+│   │   ├── auth.js              # Authentication routes
+│   │   ├── categories.js        # Category routes
+│   │   ├── transactions.js      # Transaction routes
+│   │   └── users.js             # User management routes
+│   └── scripts/
+│       └── initDatabase.js      # Database initialization
+├── server.js                    # Entry point
+├── package.json
+├── Dockerfile
+├── docker-compose.yml
+└── .env.example
 ```
 
-## 🐳 Docker (опціонально)
+## 🙏 Acknowledgments
 
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-EXPOSE 5000
-CMD ["node", "server.js"]
-```
+- Built with ❤️ using Node.js and Express
+- Database hosted on [Neon](https://neon.tech)
+- Deployed on [Render](https://render.com)
 
-Запуск:
-```bash
-docker build -t finance-backend-a .
-docker run -p 5000:5000 --env-file .env finance-backend-a
-```
 
-## 🚀 Деплой
-
-### Render.com (РЕКОМЕНДОВАНО - безкоштовно)
-
-1. Зареєструйся на [Render.com](https://render.com)
-2. Створи **PostgreSQL** базу даних
-3. Створи **Web Service**:
-   - Build Command: `npm install`
-   - Start Command: `npm start`
-4. Додай Environment Variables:
-   - `DATABASE_URL` (з Render PostgreSQL)
-   - `JWT_SECRET`
-   - `FRONTEND_URL`
-   - `NODE_ENV=production`
-
-### Railway.app (альтернатива)
-
-1. Зареєструйся на [Railway.app](https://railway.app)
-2. Створи новий проект
-3. Додай PostgreSQL plugin
-4. Підключи GitHub репозиторій
-5. Додай змінні середовища
-
-## 🔒 Безпека
-
-- ✅ Паролі хешовані (bcrypt, 10 rounds)
-- ✅ JWT токени з expiration
-- ✅ SQL injection захист (параметризовані запити)
-- ✅ CORS налаштований
-- ✅ Helmet middleware
-- ✅ Валідація вхідних даних
-- ✅ Блокування користувачів
-- ✅ Role-based access control
-
-## 📊 Структура бази даних
-
-```sql
-users
-├── id (SERIAL)
-├── email (VARCHAR UNIQUE)
-├── password_hash (TEXT)
-├── role (VARCHAR: 'admin' | 'user')
-├── is_blocked (BOOLEAN)
-└── created_at (TIMESTAMP)
-
-categories
-├── id (SERIAL)
-├── name (VARCHAR)
-├── user_id (FK → users.id)
-└── created_at (TIMESTAMP)
-
-transactions
-├── id (SERIAL)
-├── amount (NUMERIC)
-├── type (VARCHAR: 'income' | 'expense')
-├── description (TEXT)
-├── date (DATE)
-├── user_id (FK → users.id)
-├── category_id (FK → categories.id)
-└── created_at (TIMESTAMP)
-```
-
-## 🐛 Troubleshooting
-
-### Помилка підключення до БД
-```
-Error: connect ECONNREFUSED 127.0.0.1:5432
-```
-**Рішення**: Переконайся, що PostgreSQL запущений і `DATABASE_URL` правильний.
-
-### JWT помилки
-```
-Error: JWT secret not defined
-```
-**Рішення**: Додай `JWT_SECRET` у `.env` файл.
-
-### CORS помилки
-```
-Access to fetch at ... has been blocked by CORS policy
-```
-**Рішення**: Переконайся, що `FRONTEND_URL` у `.env` відповідає твоєму frontend URL.
-
-## 📝 TODO для проекту
-
-- [ ] Rate limiting (захист від DDoS)
-- [ ] Email підтвердження
-- [ ] Забули пароль?
-- [ ] Експорт даних (CSV, PDF)
-- [ ] Більше статистики
-- [ ] WebSockets для real-time оновлень
-
-## 👥 Автор
-
-Твоя команда - Backend A developer
-
-## 📄 Ліцензія
-
-MIT
+**God bless! 🙏**
