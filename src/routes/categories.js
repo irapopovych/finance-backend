@@ -12,6 +12,7 @@ router.use(authenticate);
 const createCategoryValidation = [
   body('name').trim().notEmpty().withMessage('Category name is required')
     .isLength({ max: 255 }).withMessage('Category name too long'),
+  body('type').optional().isIn(['income', 'expense']).withMessage('Type must be income or expense')
 ];
 
 /**
@@ -22,10 +23,10 @@ const createCategoryValidation = [
 router.get('/', async (req, res) => {
   try {
     const result = await query(
-      `SELECT id, name, created_at 
+      `SELECT id, name, type, created_at 
        FROM categories 
        WHERE user_id = $1 
-       ORDER BY name ASC`,
+       ORDER BY type ASC, name ASC`,
       [req.user.id]
     );
 
@@ -56,7 +57,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
 
     const result = await query(
-      `SELECT id, name, created_at 
+      `SELECT id, name, type, created_at 
        FROM categories 
        WHERE id = $1 AND user_id = $2`,
       [id, req.user.id]
@@ -102,7 +103,7 @@ router.post('/', createCategoryValidation, async (req, res) => {
       });
     }
 
-    const { name } = req.body;
+    const { name, type = 'expense' } = req.body;
 
     // Перевіряємо, чи категорія вже існує
     const existing = await query(
@@ -119,10 +120,10 @@ router.post('/', createCategoryValidation, async (req, res) => {
 
     // Створюємо категорію
     const result = await query(
-      `INSERT INTO categories (name, user_id) 
-       VALUES ($1, $2) 
-       RETURNING id, name, created_at`,
-      [name, req.user.id]
+      `INSERT INTO categories (name, type, user_id) 
+       VALUES ($1, $2, $3) 
+       RETURNING id, name, type, created_at`,
+      [name, type, req.user.id]
     );
 
     res.status(201).json({
@@ -161,7 +162,7 @@ router.put('/:id', createCategoryValidation, async (req, res) => {
       });
     }
 
-    const { name } = req.body;
+    const { name, type } = req.body;
 
     // Перевіряємо, чи категорія належить користувачу
     const categoryCheck = await query(
@@ -189,14 +190,21 @@ router.put('/:id', createCategoryValidation, async (req, res) => {
       });
     }
 
-    // Оновлюємо
-    const result = await query(
-      `UPDATE categories 
-       SET name = $1 
-       WHERE id = $2 AND user_id = $3 
-       RETURNING id, name, created_at`,
-      [name, id, req.user.id]
-    );
+    // Оновлюємо (тільки ті поля що передано)
+    let updateQuery = 'UPDATE categories SET name = $1';
+    let params = [name];
+    let paramIndex = 2;
+
+    if (type) {
+      updateQuery += `, type = $${paramIndex}`;
+      params.push(type);
+      paramIndex++;
+    }
+
+    updateQuery += ` WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1} RETURNING id, name, type, created_at`;
+    params.push(id, req.user.id);
+
+    const result = await query(updateQuery, params);
 
     res.json({
       success: true,
