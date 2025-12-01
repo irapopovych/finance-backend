@@ -2,6 +2,8 @@
 node_modules/
 package-lock.json
 
+docker-compose.yml
+
 # Environment variables
 .env
 .env.local
