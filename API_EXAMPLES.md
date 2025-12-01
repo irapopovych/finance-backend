@@ -231,7 +231,7 @@ All category endpoints require authentication.
 
 **`GET /api/categories`**
 
-Get all categories for authenticated user
+Get all categories for authenticated user, sorted by type (expense first, then income) and name
 
 **Headers:**
 ```
@@ -247,16 +247,23 @@ Authorization: Bearer {token}
       {
         "id": 1,
         "name": "Salary",
-        "user_id": 2,
+        "type": "income",
         "created_at": "2025-01-15T10:00:00.000Z"
       },
       {
         "id": 2,
         "name": "Rent",
-        "user_id": 2,
+        "type": "expense",
         "created_at": "2025-01-15T10:00:00.000Z"
+      },
+      {
+        "id": 3,
+        "name": "Groceries",
+        "type": "expense",
+        "created_at": "2025-01-15T10:05:00.000Z"
       }
-    ]
+    ],
+    "count": 3
   }
 }
 ```
@@ -285,7 +292,7 @@ Authorization: Bearer {token}
     "category": {
       "id": 1,
       "name": "Salary",
-      "user_id": 2,
+      "type": "income",
       "created_at": "2025-01-15T10:00:00.000Z"
     }
   }
@@ -308,9 +315,17 @@ Authorization: Bearer {token}
 **Request:**
 ```json
 {
-  "name": "Groceries"
+  "name": "Freelance",
+  "type": "income"
 }
 ```
+
+**Field Validation:**
+
+| Field | Required | Type | Rules |
+|-------|----------|------|-------|
+| `name` | ✅ Yes | string | Max 255 characters, unique per user |
+| `type` | ❌ No | string | `income` or `expense` (default: `expense`) |
 
 **Success Response (201):**
 ```json
@@ -320,11 +335,41 @@ Authorization: Bearer {token}
   "data": {
     "category": {
       "id": 13,
-      "name": "Groceries",
-      "user_id": 2,
+      "name": "Freelance",
+      "type": "income",
       "created_at": "2025-01-15T10:30:00.000Z"
     }
   }
+}
+```
+
+**Examples:**
+
+```javascript
+// Create income category
+{
+  "name": "Salary",
+  "type": "income"
+}
+
+// Create expense category (explicit)
+{
+  "name": "Groceries",
+  "type": "expense"
+}
+
+// Create expense category (default)
+{
+  "name": "Shopping"
+  // type defaults to "expense"
+}
+```
+
+**Error (409 - Duplicate):**
+```json
+{
+  "success": false,
+  "message": "Category with this name already exists"
 }
 ```
 
@@ -334,7 +379,7 @@ Authorization: Bearer {token}
 
 **`PUT /api/categories/:id`**
 
-Update category
+Update category name and/or type
 
 **URL Params:**
 - `id` - Category ID
@@ -347,9 +392,17 @@ Authorization: Bearer {token}
 **Request:**
 ```json
 {
-  "name": "Updated Name"
+  "name": "Updated Name",
+  "type": "income"
 }
 ```
+
+**Field Validation:**
+
+| Field | Required | Type | Rules |
+|-------|----------|------|-------|
+| `name` | ✅ Yes | string | Max 255 characters |
+| `type` | ❌ No | string | `income` or `expense` |
 
 **Success Response (200):**
 ```json
@@ -360,12 +413,14 @@ Authorization: Bearer {token}
     "category": {
       "id": 13,
       "name": "Updated Name",
-      "user_id": 2,
+      "type": "income",
       "created_at": "2025-01-15T10:30:00.000Z"
     }
   }
 }
 ```
+
+**Note:** You can update just the name, just the type, or both fields at once.
 
 ---
 
@@ -390,6 +445,8 @@ Authorization: Bearer {token}
   "message": "Category deleted successfully"
 }
 ```
+
+**Note:** Deleting a category sets `category_id` to NULL in associated transactions.
 
 ---
 
@@ -545,7 +602,7 @@ Authorization: Bearer {token}
 
 **`PUT /api/transactions/:id`**
 
-Update transaction
+Update transaction (**all fields required**)
 
 **URL Params:**
 - `id` - Transaction ID
@@ -565,6 +622,8 @@ Authorization: Bearer {token}
   "category_id": 3
 }
 ```
+
+**⚠️ Important:** All fields (`amount`, `type`, `category_id`, `date`) are required when updating. Only `description` is optional.
 
 **Success Response (200):**
 ```json
@@ -869,6 +928,7 @@ Authorization: Bearer {admin-token}
 | 401 | Unauthorized | Missing/invalid token |
 | 403 | Forbidden | Insufficient permissions |
 | 404 | Not Found | Resource not found |
+| 409 | Conflict | Duplicate resource |
 | 500 | Server Error | Internal error |
 
 ### Common Errors
@@ -931,6 +991,12 @@ Authorization: Bearer {admin-token}
 
 ## 📌 Important Notes
 
+### Category Types
+Categories can be either `income` or `expense`:
+- **income** - For money coming in (salary, freelance, etc.)
+- **expense** - For money going out (rent, groceries, etc.)
+- If not specified, defaults to `expense`
+
 ### Date Format
 All dates must be in **YYYY-MM-DD** format
 - ✅ Correct: `2025-01-15`
@@ -939,15 +1005,15 @@ All dates must be in **YYYY-MM-DD** format
 ### Amount Format
 All amounts are numbers with 2 decimal places
 - ✅ Correct: `150.50`, `1000.00`, `99.99`
-- ❌ Wrong: `"150.50"` (string), `150` (no decimals)
+- ❌ Wrong: `"150.50"` (string), `150` (no decimals in response)
 
 ### Token Expiration
 JWT tokens expire after **7 days**. After expiration, user must login again.
 
 ### CORS
-CORS is configured for: `http://localhost:3000`
-
-For production frontend, update `FRONTEND_URL` environment variable.
+CORS is configured for:
+- `http://localhost:5173` - Local development
+- `FRONTEND_URL` environment variable - Production frontend
 
 ### Cascade Deletion
 - Deleting a **user** → deletes all their categories and transactions
@@ -967,18 +1033,23 @@ Recommended tools for testing:
 
 ```bash
 # Health check
-curl http://localhost:5000/health
+curl https://finance-backend-32gc.onrender.com/health
 
 # Login
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST https://finance-backend-32gc.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@test.com","password":"user123"}'
 
-# Get transactions (replace TOKEN)
-curl http://localhost:5000/api/transactions \
+# Get categories (replace TOKEN)
+curl https://finance-backend-32gc.onrender.com/api/categories \
   -H "Authorization: Bearer TOKEN"
-```
 
+# Create income category
+curl -X POST https://finance-backend-32gc.onrender.com/api/categories \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Freelance","type":"income"}'
+```
 
 ---
 
