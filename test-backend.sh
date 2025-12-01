@@ -7,12 +7,13 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-API_URL="http://localhost:5000"
+API_URL="https://finance-backend-32gc.onrender.com"
 
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}🧪 BACKEND A - ПОВНЕ ТЕСТУВАННЯ${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
+
 
 TESTS_PASSED=0
 TESTS_FAILED=0
