@@ -64,14 +64,7 @@ router.post('/register', registerValidation, async (req, res) => {
 
     const newUser = result.rows[0];
 
-    // Створюємо стандартні категорії для нового користувача
-    const defaultCategories = ['Food', 'Rent', 'Transport', 'Entertainment', 'Salary', 'Other'];
-    for (const category of defaultCategories) {
-      await query(
-        'INSERT INTO categories (name, user_id) VALUES ($1, $2)',
-        [category, newUser.id]
-      );
-    }
+    // Категорії тепер глобальні - не треба створювати для кожного користувача
 
     // Генеруємо JWT токен
     const token = jwt.sign(
@@ -99,7 +92,7 @@ router.post('/register', registerValidation, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Registration failed',
-      error: error.message
+      // error: error.message
     });
   }
 });
@@ -181,7 +174,7 @@ router.post('/login', loginValidation, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Login failed',
-      error: error.message
+      // error: error.message
     });
   }
 });

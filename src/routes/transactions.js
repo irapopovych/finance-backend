@@ -273,17 +273,25 @@ router.post('/', transactionValidation, async (req, res) => {
 
     const { amount, type, description, date, category_id } = req.body;
 
-    // Якщо вказана категорія, перевіряємо, що вона належить користувачу
+    // Якщо вказана категорія, перевіряємо що вона існує і має правильний тип
     if (category_id) {
       const categoryCheck = await query(
-        'SELECT id FROM categories WHERE id = $1 AND user_id = $2',
-        [category_id, req.user.id]
+        'SELECT id, type FROM categories WHERE id = $1',
+        [category_id]
       );
 
       if (categoryCheck.rows.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'Category not found or does not belong to you'
+          message: 'Category not found'
+        });
+      }
+
+      // Перевіряємо що тип транзакції співпадає з типом категорії
+      if (categoryCheck.rows[0].type !== type) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot use ${categoryCheck.rows[0].type} category for ${type} transaction`
         });
       }
     }
@@ -347,17 +355,25 @@ router.put('/:id', transactionValidation, async (req, res) => {
       });
     }
 
-    // Якщо вказана категорія, перевіряємо, що вона належить користувачу
+    // Якщо вказана категорія, перевіряємо що вона існує і має правильний тип
     if (category_id) {
       const categoryCheck = await query(
-        'SELECT id FROM categories WHERE id = $1 AND user_id = $2',
-        [category_id, req.user.id]
+        'SELECT id, type FROM categories WHERE id = $1',
+        [category_id]
       );
 
       if (categoryCheck.rows.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'Category not found or does not belong to you'
+          message: 'Category not found'
+        });
+      }
+
+      // Перевіряємо що тип транзакції співпадає з типом категорії
+      if (categoryCheck.rows[0].type !== type) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot use ${categoryCheck.rows[0].type} category for ${type} transaction`
         });
       }
     }

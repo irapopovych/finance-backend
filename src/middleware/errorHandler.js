@@ -18,7 +18,7 @@ const errorHandler = (err, req, res, next) => {
       return res.status(409).json({
         success: false,
         message: 'Resource already exists',
-        detail: err.detail
+        // detail: err.detail
       });
     }
     

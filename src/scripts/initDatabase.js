@@ -29,17 +29,16 @@ async function initDatabase() {
     `);
     console.log('✅ Table "users" created');
 
-    // Створюємо таблицю categories
+    // Створюємо таблицю categories (ГЛОБАЛЬНІ - без user_id)
     await client.query(`
       CREATE TABLE categories (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(name, user_id)
+        name VARCHAR(255) UNIQUE NOT NULL,
+        type VARCHAR(20) DEFAULT 'expense' CHECK (type IN ('income', 'expense')),
+        created_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    console.log('✅ Table "categories" created');
+    console.log('✅ Table "categories" created (GLOBAL)');
 
     // Створюємо таблицю transactions
     await client.query(`
@@ -60,7 +59,7 @@ async function initDatabase() {
     await client.query(`
       CREATE INDEX idx_transactions_user ON transactions(user_id);
       CREATE INDEX idx_transactions_date ON transactions(date);
-      CREATE INDEX idx_categories_user ON categories(user_id);
+      CREATE INDEX idx_transactions_category ON transactions(category_id);
     `);
     console.log('✅ Indexes created');
 
@@ -81,20 +80,35 @@ async function initDatabase() {
     const userId = userResult.rows[0].id;
     console.log('✅ Test user created (email: user@test.com, password: user123)');
 
-    // Створюємо категорії (розширений список)
+    // Створюємо глобальні категорії з правильними типами
     const categories = [
-      'Salary', 'Freelance', 'Other Income',  // Income categories
-      'Rent', 'Utilities', 'Food', 'Transport', 'Entertainment', 
-      'Healthcare', 'Shopping', 'Education', 'Other'  // Expense categories
+      // Income categories
+      { name: 'Salary', type: 'income' },
+      { name: 'Freelance', type: 'income' },
+      { name: 'Investment Income', type: 'income' },
+      { name: 'Gift Received', type: 'income' },
+      { name: 'Other Income', type: 'income' },
+      
+      // Expense categories
+      { name: 'Rent', type: 'expense' },
+      { name: 'Utilities', type: 'expense' },
+      { name: 'Food', type: 'expense' },
+      { name: 'Transport', type: 'expense' },
+      { name: 'Entertainment', type: 'expense' },
+      { name: 'Healthcare', type: 'expense' },
+      { name: 'Shopping', type: 'expense' },
+      { name: 'Education', type: 'expense' },
+      { name: 'Insurance', type: 'expense' },
+      { name: 'Other', type: 'expense' }
     ];
     
     for (const category of categories) {
       await client.query(`
-        INSERT INTO categories (name, user_id) 
+        INSERT INTO categories (name, type) 
         VALUES ($1, $2)
-      `, [category, userId]);
+      `, [category.name, category.type]);
     }
-    console.log(`✅ ${categories.length} categories created`);
+    console.log(`✅ ${categories.length} global categories created`);
 
     // Реалістичні транзакції за 3 місяці (листопад 2024 - січень 2025)
     
@@ -235,11 +249,11 @@ async function initDatabase() {
       ...januaryTransactions
     ];
 
-    // Вставляємо транзакції
+    // Вставляємо транзакції (БЕЗ user_id в підзапиті категорії!)
     for (const trans of allTransactions) {
       await client.query(`
         INSERT INTO transactions (amount, type, description, date, user_id, category_id)
-        VALUES ($1, $2, $3, $4, $5, (SELECT id FROM categories WHERE name=$6 AND user_id=$5))
+        VALUES ($1, $2, $3, $4, $5, (SELECT id FROM categories WHERE name=$6))
       `, [trans.amount, trans.type, trans.desc, trans.date, userId, trans.cat]);
     }
     
@@ -251,7 +265,7 @@ async function initDatabase() {
     console.log('   User:  user@test.com / user123\n');
     console.log('📊 Test data statistics:');
     console.log(`   • Users: 2`);
-    console.log(`   • Categories: ${categories.length}`);
+    console.log(`   • Categories: ${categories.length} (GLOBAL)`);
     console.log(`   • Transactions: ${allTransactions.length} (3 months)`);
     console.log(`   • Date range: Nov 2024 - Jan 2025\n`);
 
