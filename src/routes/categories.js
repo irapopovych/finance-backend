@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../config/database');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireAdmin } = require('../middleware/auth');  // ← Додай requireAdmin
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ const createCategoryValidation = [
  * @desc    Отримати всі категорії (глобальні для всіх)
  * @access  Private
  */
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const result = await query(
       `SELECT id, name, type, created_at 
@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
  * @desc    Отримати всі категорії у форматі { id, name, type }
  * @access  Private
  */
-router.get('/all', async (req, res) => {
+router.get('/all', authenticate, async (req, res) => {
   try {
     const result = await query(
       `SELECT id, name, type 
@@ -77,7 +77,7 @@ router.get('/all', async (req, res) => {
  * @desc    Отримати одну категорію
  * @access  Private
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -116,7 +116,7 @@ router.get('/:id', async (req, res) => {
  * @desc    Створити нову категорію (глобальну)
  * @access  Private
  */
-router.post('/', createCategoryValidation, async (req, res) => {
+router.post('/', authenticate, createCategoryValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -172,7 +172,7 @@ router.post('/', createCategoryValidation, async (req, res) => {
  * @desc    Оновити категорію
  * @access  Private
  */
-router.put('/:id', createCategoryValidation, async (req, res) => {
+router.put('/:id', authenticate, createCategoryValidation, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -251,7 +251,7 @@ router.put('/:id', createCategoryValidation, async (req, res) => {
  * @desc    Видалити категорію
  * @access  Private
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -274,7 +274,7 @@ router.delete('/:id', async (req, res) => {
     res.json({
       success: true,
       message: 'Category deleted successfully'
-    });
+    }); 
 
   } catch (error) {
     console.error('Delete category error:', error);

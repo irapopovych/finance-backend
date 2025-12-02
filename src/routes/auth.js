@@ -9,7 +9,16 @@ const router = express.Router();
 
 // Валідація для реєстрації
 const registerValidation = [
-  body('email').isEmail().normalizeEmail().withMessage('Invalid email format'),
+  body('email')
+    .isEmail().normalizeEmail()
+    .withMessage('Invalid email format')
+    .custom((value) => {
+      // Заборонити небезпечні символи
+      if (/['"<>]/.test(value)) {
+        throw new Error('Email contains invalid characters');
+      }
+      return true;
+    }),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
 ];
 
