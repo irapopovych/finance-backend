@@ -114,9 +114,9 @@ router.get('/:id', authenticate, async (req, res) => {
 /**
  * @route   POST /api/categories
  * @desc    Створити нову категорію (глобальну)
- * @access  Private
+ * @access  Admin only
  */
-router.post('/', authenticate, createCategoryValidation, async (req, res) => {
+router.post('/', authenticate, requireAdmin, createCategoryValidation, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -170,9 +170,9 @@ router.post('/', authenticate, createCategoryValidation, async (req, res) => {
 /**
  * @route   PUT /api/categories/:id
  * @desc    Оновити категорію
- * @access  Private
+ * @access  Admin only
  */
-router.put('/:id', authenticate, createCategoryValidation, async (req, res) => {
+router.put('/:id', authenticate, requireAdmin, createCategoryValidation, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -249,9 +249,9 @@ router.put('/:id', authenticate, createCategoryValidation, async (req, res) => {
 /**
  * @route   DELETE /api/categories/:id
  * @desc    Видалити категорію
- * @access  Private
+ * @access  Admin only
  */
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
