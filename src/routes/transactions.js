@@ -178,17 +178,15 @@ router.get('/stats', async (req, res) => {
     const categoryStatsResult = await query(categoryStatsQuery, categoryParams);
 
     // Статистика по місяцях (для ML предикції)
-    // Повертаємо у форматі що очікує ML backend
     const monthlyStatsQuery = `
       SELECT 
-        TO_CHAR(DATE_TRUNC('month', date), 'YYYY-MM') as month,
-        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
-        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense,
-        SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as balance,
-        COUNT(*) as transaction_count
+        DATE_TRUNC('month', date) as month,
+        type,
+        SUM(amount) as total,
+        COUNT(*) as count
       FROM transactions
       WHERE user_id = $1
-      GROUP BY DATE_TRUNC('month', date)
+      GROUP BY month, type
       ORDER BY month DESC
       LIMIT 12
     `;
