@@ -9,6 +9,7 @@ const authRoutes = require('./src/routes/auth');
 const userRoutes = require('./src/routes/users');
 const categoryRoutes = require('./src/routes/categories');
 const transactionRoutes = require('./src/routes/transactions');
+const predictionsRoutes = require('./src/routes/predictions');
 
 // Middleware
 const errorHandler = require('./src/middleware/errorHandler');
@@ -22,8 +23,9 @@ app.use(helmet());
 const allowedOrigins = [
   'http://localhost:5173',  // для локальної розробки
   'http://localhost:5174',  // на всяк випадок
-  process.env.FRONTEND_URL  // твій реальний фронтенд
-].filter(Boolean); // видаляє undefined якщо FRONTEND_URL не встановлена
+  process.env.FRONTEND_URL,  // твій реальний фронтенд
+  process.env.ML_BACKEND_URL // ML backend для отримання даних
+].filter(Boolean); // видаляє undefined якщо не встановлена
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -62,6 +64,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/predict', predictionsRoutes);
 
 // 404 handler
 app.use((req, res) => {
