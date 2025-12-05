@@ -105,10 +105,15 @@ router.get('/', async (req, res) => {
  * @route   GET /api/transactions/stats
  * @desc    Отримати статистику транзакцій (для ML і графіків)
  * @access  Private
+ * @query   user_id (optional) - для ML backend, якщо не вказано використовує req.user.id
  */
 router.get('/stats', async (req, res) => {
   try {
-    const { date_from, date_to } = req.query;
+    const { date_from, date_to, user_id } = req.query;
+    
+    // Якщо user_id передано в query, використовуємо його (для ML backend)
+    // Інакше використовуємо req.user.id (для фронтенду)
+    const targetUserId = user_id ? parseInt(user_id) : req.user.id;
 
     // Загальна статистика
     let statsQuery = `
@@ -121,7 +126,7 @@ router.get('/stats', async (req, res) => {
       WHERE user_id = $1
     `;
     
-    const queryParams = [req.user.id];
+    const queryParams = [targetUserId];
     let paramIndex = 2;
 
     if (date_from) {
@@ -153,7 +158,7 @@ router.get('/stats', async (req, res) => {
       WHERE t.user_id = $1
     `;
     
-    const categoryParams = [req.user.id];
+    const categoryParams = [targetUserId];
     let catParamIndex = 2;
 
     if (date_from) {
@@ -173,20 +178,22 @@ router.get('/stats', async (req, res) => {
     const categoryStatsResult = await query(categoryStatsQuery, categoryParams);
 
     // Статистика по місяцях (для ML предикції)
+    // Повертаємо у форматі що очікує ML backend
     const monthlyStatsQuery = `
       SELECT 
-        DATE_TRUNC('month', date) as month,
-        type,
-        SUM(amount) as total,
-        COUNT(*) as count
+        TO_CHAR(DATE_TRUNC('month', date), 'YYYY-MM') as month,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as balance,
+        COUNT(*) as transaction_count
       FROM transactions
       WHERE user_id = $1
-      GROUP BY month, type
+      GROUP BY DATE_TRUNC('month', date)
       ORDER BY month DESC
       LIMIT 12
     `;
 
-    const monthlyStatsResult = await query(monthlyStatsQuery, [req.user.id]);
+    const monthlyStatsResult = await query(monthlyStatsQuery, [targetUserId]);
 
     res.json({
       success: true,
